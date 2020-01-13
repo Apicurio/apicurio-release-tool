@@ -76,8 +76,13 @@ public class ReleaseTool {
             System.exit(1);
         }
         
-        ReleaseTool tool = new ReleaseTool(cmd);
-        tool.release();
+        try {
+            ReleaseTool tool = new ReleaseTool(cmd);
+            tool.release();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     private String org = "apicurio";
@@ -186,7 +191,7 @@ public class ReleaseTool {
 
         // Step #2 - Create a GitHub Release
         try {
-            assetUploadUrl = createRelease(org, "apicurio-studio", releaseName, isPrerelease, releaseTag, releaseNotes);
+            assetUploadUrl = createRelease(org, "apicurio-studio", releaseName, isPrerelease, "v" + releaseTag, releaseNotes);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
@@ -368,7 +373,7 @@ public class ReleaseTool {
         String assetUploadUrl;
         System.out.println("\nCreating GitHub Release " + releaseTag);
         JSONObject body = new JSONObject();
-        body.put("tag_name", "v" + releaseTag);
+        body.put("tag_name", releaseTag);
         body.put("name", releaseName);
         body.put("body", releaseNotes);
         body.put("prerelease", isPrerelease);
@@ -379,6 +384,8 @@ public class ReleaseTool {
                 .header("Authorization", "token " + githubPAT)
                 .body(body).asJson();
         if (response.getStatus() != 201) {
+            System.out.println("!!! ERROR !!!");
+            System.out.println("!!! " + response.getBody());
             throw new Exception("Failed to create release in GitHub: " + response.getStatusText());
         }
 
