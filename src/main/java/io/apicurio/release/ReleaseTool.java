@@ -126,6 +126,8 @@ public class ReleaseTool {
             releaseStudio();
         } else if ("apicurito".equals(repository)) {
             releaseApicurito();
+        } else if ("apicurio-registry".equals(repository)) {
+            releaseRegistry();
         } else {
             throw new Exception("Unsupported repository: " + repository);
         }
@@ -285,6 +287,52 @@ public class ReleaseTool {
                 System.out.println("---");
             }
 
+            System.out.println("Found " + issues.size() + " issues closed in release " + releaseTag);
+
+            String suffix = "";
+            releaseNotes = generateReleaseNotes(releaseName, releaseTag, issues, suffix);
+            System.out.println("------------ Release Notes --------------");
+            System.out.println(releaseNotes);
+            System.out.println("-----------------------------------------");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        // Step #2 - Create a GitHub Release
+        try {
+            createRelease(org, "apicurito", releaseName, isPrerelease, releaseTag, releaseNotes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        System.out.println("=========================================");
+        System.out.println("All Done!");
+        System.out.println("=========================================");        
+    }
+
+    /**
+     * Release the Apicurio Registry repo.
+     */
+    private void releaseRegistry() throws Exception {
+        System.out.println("=========================================");
+        System.out.println("Releasing Apicurio Registry");
+        System.out.println("Creating Release: " + releaseTag);
+        System.out.println("Previous Release: " + oldReleaseTag);
+        System.out.println("            Name: " + releaseName);
+        System.out.println("     Pre-Release: " + isPrerelease);
+        System.out.println("=========================================");
+
+        String releaseNotes = "";
+
+        // Step #1 - Generate Release Notes
+        //   * Grab info about the previous release (extract publish date)
+        //   * Query all Issues for ones closed since that date
+        //   * Generate Release Notes from the resulting Issues
+        try {
+            // Grab closed issues from Apicurito itself
+            List<JSONObject> issues = getIssuesForRelease(org, "apicurio-registry", oldReleaseTag, null, null);
             System.out.println("Found " + issues.size() + " issues closed in release " + releaseTag);
 
             String suffix = "";
