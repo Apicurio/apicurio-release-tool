@@ -330,6 +330,7 @@ public class ReleaseTool {
         //   * Grab info about the previous release (extract publish date)
         //   * Query all Issues for ones closed since that date
         //   * Generate Release Notes from the resulting Issues
+        //////////////////////////////////////////////////
         try {
             // Grab closed issues from Apicurito itself
             List<JSONObject> issues = getIssuesForRelease(org, "apicurio-registry", oldReleaseTag, null, null);
@@ -345,12 +346,43 @@ public class ReleaseTool {
             System.exit(1);
         }
 
+        
+        String assetUploadUrl = null;
         // Step #2 - Create a GitHub Release
+        //////////////////////////////////////////////////
         try {
-            createRelease(org, "apicurio-studio", releaseName, isPrerelease, releaseTag, releaseNotes);
+            assetUploadUrl = createRelease(org, "apicurio-registry", releaseName, isPrerelease, releaseTag, releaseNotes);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
+        }
+
+        // Step #3 - Upload Release Artifact (zip file)
+        //////////////////////////////////////////////////
+        if (artifact != null) {
+            File releaseArtifactFile = new File(artifact);
+            File releaseArtifactSigFile = new File(artifact + ".asc");
+    
+            String releaseArtifact = releaseArtifactFile.getName();
+            String releaseArtifactSig = releaseArtifactSigFile.getName();
+    
+            if (!releaseArtifactFile.isFile()) {
+                System.err.println("Missing file: " + releaseArtifactFile.getAbsolutePath());
+                System.exit(1);
+            }
+            if (!releaseArtifactSigFile.isFile()) {
+                System.err.println("Missing file: " + releaseArtifactSigFile.getAbsolutePath());
+                System.exit(1);
+            }
+            System.out.println("\nUploading Artifact(s): " + releaseArtifact);
+            try {
+                uploadReleaseArtifact(releaseArtifactFile, releaseArtifact, assetUploadUrl, "application/zip");
+                Thread.sleep(1000);
+                uploadReleaseArtifact(releaseArtifactSigFile, releaseArtifactSig, assetUploadUrl, "text/plain");
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
 
         System.out.println("=========================================");
