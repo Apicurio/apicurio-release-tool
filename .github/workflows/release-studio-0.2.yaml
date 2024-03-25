@@ -57,12 +57,8 @@ jobs:
          platforms: ${{env.PLATFORMS}}
          push: true
          tags: |
-           docker.io/apicurio/apicurio-studio-ui:latest
-           docker.io/apicurio/apicurio-studio-ui:latest-release
-           docker.io/apicurio/apicurio-studio-ui:${{env.RELEASE_VERSION}}
-           quay.io/apicurio/apicurio-studio-ui:latest
-           quay.io/apicurio/apicurio-studio-ui:latest-release
-           quay.io/apicurio/apicurio-studio-ui:${{env.RELEASE_VERSION}}
+           docker.io/apicurio/apicurio-studio-ui:${{ github.event.inputs.release-version }}
+           quay.io/apicurio/apicurio-studio-ui:${{ github.event.inputs.release-version }}
 
       - name: Google Chat Notification
         if: ${{ failure() }}
